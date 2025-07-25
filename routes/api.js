@@ -1,52 +1,56 @@
 const express = require("express");
 const router = express.Router();
 
-let currentCommand = {
-    id: null,
-    command: null,
-    result: null
-};
+let waitingResolvers = [];
+let currentCommand = "";
+let commandId = "";
 
-router.post("/set_command", (req, res) => {
+router.post("/set_command", async (req, res) => {
     const { command } = req.body;
-    const id = Date.now().toString();
-    currentCommand = { id, command, result: null };
-    res.json({ status: "comando recebido", id });
+
+    if (!command) {
+        return res.status(400).json({ error: "Comando não fornecido" });
+    }
+
+    commandId = Date.now().toString();
+    currentCommand = command;
+
+    // Espera o resultado do client
+    try {
+        const result = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject("timeout");
+            }, 15000); // timeout de 15s
+
+            waitingResolvers.push((output) => {
+                clearTimeout(timeout);
+                resolve(output);
+            });
+        });
+
+        res.json({ id: commandId, result: result });
+    } catch (err) {
+        res.status(504).json({ error: "Tempo esgotado aguardando resultado" });
+    }
 });
 
 router.get("/get_command", (req, res) => {
-    res.json({ id: currentCommand.id, command: currentCommand.command });
+    res.json({ id: commandId, command: currentCommand });
 });
 
 router.post("/send_result", (req, res) => {
-    const { id, result } = req.body;
-    if (id === currentCommand.id) {
-        currentCommand.result = result;
+    const { result } = req.body;
+
+    if (!result) return res.status(400).json({ error: "Sem resultado" });
+
+    while (waitingResolvers.length > 0) {
+        const resolve = waitingResolvers.shift();
+        resolve(result); // entrega o resultado para quem está esperando
     }
+
+    currentCommand = ""; // limpa
+    commandId = "";
     res.json({ status: "resultado recebido" });
-});
-
-router.get("/get_result", async (req, res) => {
-    const { id } = req.query;
-    const start = Date.now();
-
-    // Espera até 10s o resultado
-    while (!currentCommand.result && (Date.now() - start < 10000)) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-    }
-
-    if (id !== currentCommand.id) {
-        return res.status(404).json({ error: "ID não encontrado" });
-    }
-
-    if (currentCommand.result) {
-        const r = currentCommand.result;
-        // Limpa após entregar
-        currentCommand = { id: null, command: null, result: null };
-        return res.json({ result: r });
-    } else {
-        return res.status(408).json({ error: "timeout esperando resposta" });
-    }
 });
 
 module.exports = router;

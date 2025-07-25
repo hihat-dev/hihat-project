@@ -5,6 +5,8 @@ const PORT = 8000
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static("static"))
+app.use(express.json());
+
 
 app.use(session({
     secret: "blackhatsecret",
