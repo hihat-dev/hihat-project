@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Goldman:wght@400;700&display=swap');
+
+* {
+    margin: 0 !important;
+    padding: 0;
+    box-sizing: border-box;
+    color: #fff;
+    font-family: "Goldman", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+body {
+    background-image: url("https://www.chromethemer.com/wallpapers/android/images/640/green-hacker-hd-wallpaper-for-android.png");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+div.blur {
+    z-index: 1;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000000d5;
+    backdrop-filter: blur(5px);
+}
+
+div.form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 40vw;
+    height: 60vh;
+    z-index: 2;
+    background-color: #000000c0;
+    border-radius: 10px;
+    border: none;
+}
+
+div.form h1 {
+    position: absolute;
+    top: 0;
+    margin-top: 25vh !important;
+}
+
+form {
+    width: 40vw;
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: left;
+    padding-left: 25%;
+    gap: 20px;
+}
+form div{
+    display: flex;
+    flex-direction: column;
+}
+
+input {
+    padding: 0 5px;
+    border-radius: 5px;
+    outline: none;
+    background: none;
+    width: 20vw;
+    height: 5vh;
+}
+#submit{
+    cursor: pointer;
+    transition: all 0.5s;
+}
+#submit:hover{
+    height: 5.5vh;
+    background-color: #ffffff13;
+}
