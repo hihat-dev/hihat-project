@@ -20,7 +20,7 @@ router.post("/set_command", async (req, res) => {
         const result = await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 reject("timeout");
-            }, 15000); // timeout de 15s
+            }, 30000); // timeout de 15s
 
             waitingResolvers.push((output) => {
                 clearTimeout(timeout);
