@@ -19,24 +19,9 @@ const painelRoutes = require("./routes/painel");
 app.use("/", authRoutes);
 app.use("/", painelRoutes); 
 
+const apiRoutes = require("./routes/api");
+app.use("/", apiRoutes);
 
-let currentCommand = "";
-
-app.get("/get_command", (req, res) => {
-    res.json({ command: currentCommand });
-});
-
-app.post("/send_result", express.json(), (req, res) => {
-    const { result } = req.body;
-    console.log("Resultado do agente:", result);
-    res.json({ status: "ok" });
-});
-
-app.post("/set_command", express.json(), (req, res) => {
-    const { command } = req.body;
-    currentCommand = command;
-    res.json({ status: "comando recebido" });
-});
 
 
 app.listen(PORT, () => {
