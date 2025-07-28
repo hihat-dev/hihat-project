@@ -4,6 +4,34 @@ let vulnerabilities = []
 const computers = {}
 let editingVuln = null
 
+async function loadConnectedClients() {
+  try {
+    const response = await fetch('/api/connected_clients');
+    const data = await response.json();
+    data.clients.forEach(id => {
+      const exists = computers["outros"].some(c => c.id === id);
+      if (!exists) {
+        addUnknownComputer(id);
+      }
+    });
+  } catch (err) {
+    console.error("Erro ao carregar clientes conectados:", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initializeData();
+  initializeEventListeners();
+  initializeComputers();
+  initializeWebSocket();
+  loadConnectedClients(); // <-- chama aqui para carregar já conectados
+  updateTime();
+  setInterval(updateTime, 1000);
+  setInterval(checkComputersStatus, 5000);
+});
+
+
+
 
 const sampleVulnerabilities = [
   {
@@ -342,15 +370,14 @@ function updateComputerStatus(id, lab, status) {
 }
 
 function openComputerControl(computer) {
-  // Create a new window for computer control
-  const controlWindow = window.open("", "_blank")
+  const controlWindow = window.open("", "_blank");
 
   controlWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Controle - Computador ${computer.id} (${computer.lab.toUpperCase()})</title>
-            <style>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Controle - Computador ${computer.id} (${computer.lab.toUpperCase()})</title>
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -469,11 +496,11 @@ function openComputerControl(computer) {
             margin-left: 0.5rem;
         }
     </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>Computador ${computer.id} - ${computer.lab.toUpperCase()} (${computer.ip})</h1>
-                <div class="controls">
+    </head>
+    <body>
+      <div class="header">
+        <h1>Computador ${computer.id} - ${computer.lab.toUpperCase()} (${computer.ip})</h1>
+        <div class="controls">
                     <button class="btn btn-warning" onclick="restartComputer()">
                         <i class="fas fa-redo"></i> Reiniciar
                     </button>
@@ -484,100 +511,90 @@ function openComputerControl(computer) {
                         <i class="fas fa-times"></i> Fechar
                     </button>
                 </div>
-            </div>
-            <div class="main-content">
-<div class="screen-area">
-  <img id="stream-image" style="max-width: 100%; max-height: 100%;" />
-</div>
+      </div>
+      <div class="main-content">
+        <div class="screen-area">
+          <img id="stream-image" style="max-width: 100%; max-height: 100%;" />
+        </div>
+        <div class="terminal-area">
+          <div class="terminal-header">Terminal</div>
+          <div class="terminal-output" id="terminal-output">
+            <div>Conectado ao computador ${computer.id}<br>Digite um comando e pressione Enter<br><br></div>
+          </div>
+          <div class="terminal-input">
+            <span style="color: #00ff88;">$</span>
+            <input type="text" id="command-input" placeholder="Digite um comando..." onkeypress="handleCommand(event)">
+            <button class="btn btn-primary" onclick="executeCommand()">Executar</button>
+          </div>
+        </div>
+      </div>
 
-                <div class="terminal-area">
-                    <div class="terminal-header">Terminal</div>
-                    <div class="terminal-output" id="terminal-output">
-                        <div>Conectado ao computador ${computer.id}<br>Digite um comando e pressione Enter<br><br></div>
-                    </div>
-                    <div class="terminal-input">
-                        <span style="color: #00ff88;">$</span>
-                        <input type="text" id="command-input" placeholder="Digite um comando..." onkeypress="handleCommand(event)">
-                        <button class="btn btn-primary" onclick="executeCommand()">Executar</button>
-                    </div>
-                </div>
-            </div>
-            
-            <script>
-                function executeCommand(cmd) {
-    const input = document.getElementById('command-input');
-    const output = document.getElementById('terminal-output');
-    const command = cmd || input.value.trim();
+      <script>
+        const ws = new WebSocket("ws://localhost:8000");
 
-    const ws = new WebSocket("ws://localhost:8000"); // ou render URL
+        ws.onopen = () => {
+          ws.send(JSON.stringify({ role: "panel" }));
+          console.log("Painel conectado via WS");
+        };
 
-ws.onmessage = (event) => {
-    try {
-        const data = JSON.parse(event.data);
-        if (data.type === "screen" && data.image) {
-            document.getElementById("stream-image").src = "data:image/jpeg;base64," + data.image;
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === "screen" && data.client_id == ${JSON.stringify(computer.id)}) {
+              document.getElementById("stream-image").src = "data:image/jpeg;base64," + data.image;
+            }
+          } catch (err) {
+            console.error("Erro no recebimento do frame:", err);
+          }
+        };
+
+        function executeCommand(cmd) {
+          const input = document.getElementById('command-input');
+          const output = document.getElementById('terminal-output');
+          const command = cmd || input.value.trim();
+
+          if (!command) return;
+
+          output.innerHTML += '<div style="color: #fff;">$ ' + command + '</div>';
+
+          fetch('http://localhost:8000/set_command', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command, computer_id: ${JSON.stringify(computer.id)} })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.result) {
+              output.innerHTML += '<pre style="color: #0f0; font-family: monospace;">' + data.result + '</pre><br>';
+            } else {
+              output.innerHTML += '<div style="color: #f44;">Erro na resposta do servidor</div><br>';
+            }
+          })
+          .catch(e => {
+            output.innerHTML += '<div style="color: #f44;">Erro: ' + e.message + '</div><br>';
+          });
+
+          input.value = '';
+          output.scrollTop = output.scrollHeight;
         }
-    } catch (err) {
-        console.error("Erro ao processar imagem:", err);
-    }
-}
-    
-    if (!command) return;
-    
-    output.innerHTML += '<div style="color: #ffffff;">$ ' + command + '</div>';
-    
-    fetch('http://localhost:8000/set_command', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            command: command,
-            computer_id: ${computer.id}
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data && data.result) {
-            output.innerHTML += '<pre style="color: #00ff88; font-family: monospace;">' + data.result + '</pre><br>';
-        } else {
-            output.innerHTML += '<div style="color: #ff4444;">Erro na resposta do servidor</div><br>';
+
+        function handleCommand(event) {
+          if (event.key === 'Enter') executeCommand();
         }
-    })
-    .catch(error => {
-        output.innerHTML += '<div style="color: #ff4444;">Erro: ' + error.message + '</div><br>';
-    });
-    
-    input.value = '';
-    output.scrollTop = output.scrollHeight;
+          function restartComputer() {
+  executeCommand('shutdown /r /t 0');
 }
 
-                
-                function handleCommand(event) {
-                    if (event.key === 'Enter') {
-                        executeCommand();
-                    }
-                }
-                
-                function restartComputer() {
-                    if (confirm('Tem certeza que deseja reiniciar o computador ${computer.id}?')) {
-                        executeCommand('sudo reboot');
-                    }
-                }
-                
-                function shutdownComputer() {
-                    if (confirm('Tem certeza que deseja desligar o computador ${computer.id}?')) {
-                        executeCommand('sudo shutdown -h now');
-                    }
-                }
-                
-                // Focus on input
-                document.getElementById('command-input').focus();
-            </script>
-        </body>
-        </html>
-    `)
+function shutdownComputer() {
+  executeCommand('shutdown /s /t 0');
 }
+
+      </script>
+    </body>
+    </html>
+  `);
+}
+
 
 function updateTime() {
   const now = new Date()
@@ -585,3 +602,37 @@ function updateTime() {
   const dateString = now.toLocaleDateString("pt-BR")
   document.getElementById("current-time").textContent = `${dateString} ${timeString}`
 }
+
+
+function initializeWebSocket() {
+  const socket = new WebSocket("ws://localhost:8000");
+
+  socket.onopen = () => {
+    socket.send(JSON.stringify({ role: "panel" }));
+    console.log("WebSocket conectado como painel");
+  };
+
+  socket.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+
+      if (data.type === "new_computer" && data.computer) {
+        const { id } = data.computer;
+
+        // Evita duplicatas
+        const exists = computers["outros"].some(c => c.id === id);
+        if (!exists) {
+          addUnknownComputer(id);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao processar mensagem WebSocket:", error);
+    }
+  };
+
+  socket.onclose = () => {
+    console.warn("WebSocket fechado. Tentando reconectar em 3 segundos...");
+    setTimeout(initializeWebSocket, 3000); // reconecta automaticamente
+  };
+}
+

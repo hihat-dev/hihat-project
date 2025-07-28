@@ -6,14 +6,19 @@ let currentCommand = "";
 let commandId = "";
 let lastClient = null;
 
-function notifyNewComputer(wsServer, info) {
-  const message = JSON.stringify({ type: "new-computer", computer: info })
-  wsServer.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message)
+function notifyNewComputer(wss, computerInfo) {
+  const message = {
+    type: "new_computer",
+    computer: computerInfo
+  };
+
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN && client.role === "panel") {
+      client.send(JSON.stringify(message));
     }
-  })
+  });
 }
+
 
 function setLastClient(client) {
     lastClient = client;
