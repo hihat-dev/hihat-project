@@ -41,7 +41,7 @@ router.get("/dist/:arquivo", (req, res) => {
     switch (req.params.arquivo) {
         case "hihat":
             filePath = path.resolve(__dirname, "../client/svchost.exe");
-            res.download(filePath, "hihat.exe"); // 👈 força o nome no navegador
+            res.download(filePath, "hihat.exe"); 
             return;
 
         case "launcher":
