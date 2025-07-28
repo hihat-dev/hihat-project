@@ -1,7 +1,7 @@
 const express = require("express");
 const session = require("express-session");
 const http = require("http");
-const WebSocket = require("wss");
+const WebSocket = require("ws");
 
 const app = express();
 const server = http.createServer(app);
@@ -122,5 +122,5 @@ app.get("/api/connected_clients", (req, res) => {
 
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`Servidor rodando em https://localhost:${PORT}`);
 });

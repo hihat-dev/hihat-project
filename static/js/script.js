@@ -557,7 +557,7 @@ function openComputerControl(computer) {
 
           output.innerHTML += '<div style="color: #fff;">$ ' + command + '</div>';
 
-          fetch('http://hihat-project.onrender.com/set_command', {
+          fetch('https://hihat-project.onrender.com/set_command', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ command, computer_id: ${JSON.stringify(computer.id)} })
