@@ -13,10 +13,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("static"));
 app.use(express.json());
 app.use(session({
-    secret: "blackhatsecret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 3600000 }
+  secret: "blackhatsecret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 3600000 }
 }));
 
 const authRoutes = require("./routes/auth");
@@ -36,9 +36,6 @@ wsss.on("connection", (wss, req) => {
   wss.on("message", (msg) => {
     try {
       const data = JSON.parse(msg);
-      if (data.key !== "minha_chave_super_segura") {
-      console.log("[!] Cliente não autorizado. Conexão encerrada.");
-    }
       if (data.type === "id" && data.id) {
         wss.role = "client";
         wss.client_id = data.id;
