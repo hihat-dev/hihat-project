@@ -1,48 +1,9 @@
-// Global state
 let currentTab = "dados"
 let currentLab = "lab1"
 let vulnerabilities = []
 const computers = {}
 let editingVuln = null
 
-// Sample data
-const sampleStudents = [
-  {
-    id: 1,
-    name: "Ana Silva Santos",
-    matricula: "2023001",
-    birthDate: "15/03/2005",
-    photo: null,
-  },
-  {
-    id: 2,
-    name: "Carlos Eduardo Lima",
-    matricula: "2023002",
-    birthDate: "22/07/2004",
-    photo: null,
-  },
-  {
-    id: 3,
-    name: "Maria Fernanda Costa",
-    matricula: "2023003",
-    birthDate: "08/11/2005",
-    photo: null,
-  },
-  {
-    id: 4,
-    name: "João Pedro Oliveira",
-    matricula: "2023004",
-    birthDate: "30/01/2004",
-    photo: null,
-  },
-  {
-    id: 5,
-    name: "Beatriz Almeida",
-    matricula: "2023005",
-    birthDate: "12/09/2005",
-    photo: null,
-  },
-]
 
 const sampleVulnerabilities = [
   {
@@ -104,7 +65,7 @@ function initializeEventListeners() {
 }
 
 function initializeComputers() {
-  const labs = ["lab1", "lab2", "outros"]
+  const labs = ["lab1", "lab2"]
 
   labs.forEach((lab) => {
     computers[lab] = []
@@ -115,7 +76,7 @@ function initializeComputers() {
         id: i,
         lab: lab,
         status: "offline",
-        ip: `192.168.${lab === "lab1" ? "1" : lab === "lab2" ? "2" : "3"}.${i}`,
+        ip: `192.168.${lab === "lab1" ? "1" : "2"}.${i}`,
       }
 
       computers[lab].push(computer)
@@ -124,7 +85,27 @@ function initializeComputers() {
       container.appendChild(computerElement)
     }
   })
+
+  computers["outros"] = []
 }
+
+function addUnknownComputer(clientId) {
+  const lab = "outros"
+  const id = clientId || Date.now()
+  const computer = {
+    id,
+    lab,
+    status: "online",
+    ip: "IP_desconhecido"
+  }
+
+  computers[lab].push(computer)
+
+  const container = document.getElementById(`computers-${lab}`)
+  const computerElement = createComputerElement(computer)
+  container.appendChild(computerElement)
+}
+
 
 function createComputerElement(computer) {
   const div = document.createElement("div")
@@ -200,6 +181,10 @@ function renderStudents(filteredStudents = null) {
             <div class="student-field">
                 <h4>Data de Nascimento</h4>
                 <p>${student.birthDate}</p>
+            </div>
+                <div class="student-field">
+                <h4>Curso</h4>
+                <p>${student.curso}</p>
             </div>
         </div>`;
 
@@ -366,93 +351,124 @@ function openComputerControl(computer) {
         <head>
             <title>Controle - Computador ${computer.id} (${computer.lab.toUpperCase()})</title>
             <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { 
-                    font-family: 'Segoe UI', sans-serif; 
-                    background: #0a0a0a; 
-                    color: #ffffff; 
-                    height: 100vh;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .header { 
-                    background: #1a1a1a; 
-                    padding: 1rem; 
-                    border-bottom: 1px solid #333; 
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .controls { 
-                    display: flex; 
-                    gap: 1rem; 
-                }
-                .btn { 
-                    padding: 0.5rem 1rem; 
-                    border: none; 
-                    border-radius: 4px; 
-                    cursor: pointer; 
-                    font-weight: 500;
-                }
-                .btn-danger { background: #ff4444; color: white; }
-                .btn-warning { background: #ffaa00; color: white; }
-                .btn-primary { background: #00ff88; color: #0a0a0a; }
-                .main-content { 
-                    flex: 1; 
-                    display: grid; 
-                    grid-template-columns: 2fr 1fr; 
-                    gap: 1rem; 
-                    padding: 1rem; 
-                }
-                .screen-area { 
-                    background: #1a1a1a; 
-                    border: 1px solid #333; 
-                    border-radius: 8px; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center; 
-                    font-size: 1.2rem; 
-                    color: #666;
-                }
-                .terminal-area { 
-                    background: #1a1a1a; 
-                    border: 1px solid #333; 
-                    border-radius: 8px; 
-                    display: flex; 
-                    flex-direction: column; 
-                }
-                .terminal-header { 
-                    padding: 1rem; 
-                    border-bottom: 1px solid #333; 
-                    font-weight: 600; 
-                }
-                .terminal-output { 
-                    flex: 1; 
-                    padding: 1rem; 
-                    font-family: 'Courier New', monospace; 
-                    font-size: 0.9rem; 
-                    overflow-y: auto; 
-                    background: #000; 
-                    color: #00ff88;
-                }
-                .terminal-input { 
-                    display: flex; 
-                    padding: 1rem; 
-                    border-top: 1px solid #333; 
-                }
-                .terminal-input input { 
-                    flex: 1; 
-                    background: #000; 
-                    border: none; 
-                    color: #00ff88; 
-                    font-family: 'Courier New', monospace; 
-                    padding: 0.5rem; 
-                    outline: none; 
-                }
-                .terminal-input button { 
-                    margin-left: 0.5rem; 
-                }
-            </style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #1a1a1a;
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffaa00;
+            color: white;
+        }
+
+        .btn-primary {
+            background: #00ff88;
+            color: #0a0a0a;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            /* empilha os elementos verticalmente */
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .screen-area {
+            height: 90vh;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .terminal-area {
+            height: 50vh;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-header {
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            font-weight: 600;
+        }
+
+        .terminal-output {
+            flex: 1;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-y: auto;
+            background: #000;
+            color: #00ff88;
+        }
+
+        .terminal-input {
+            display: flex;
+            padding: 1rem;
+            border-top: 1px solid #333;
+        }
+
+        .terminal-input input {
+            flex: 1;
+            background: #000;
+            border: none;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            padding: 0.5rem;
+            outline: none;
+        }
+
+        .terminal-input button {
+            margin-left: 0.5rem;
+        }
+    </style>
         </head>
         <body>
             <div class="header">
@@ -470,9 +486,10 @@ function openComputerControl(computer) {
                 </div>
             </div>
             <div class="main-content">
-                <div class="screen-area">
-                    <div>🖥️ Streaming da Tela<br><small>Funcionalidade em desenvolvimento</small></div>
-                </div>
+<div class="screen-area">
+  <img id="stream-image" style="max-width: 100%; max-height: 100%;" />
+</div>
+
                 <div class="terminal-area">
                     <div class="terminal-header">Terminal</div>
                     <div class="terminal-output" id="terminal-output">
@@ -487,44 +504,54 @@ function openComputerControl(computer) {
             </div>
             
             <script>
-                function executeCommand() {
-                    const input = document.getElementById('command-input');
-                    const output = document.getElementById('terminal-output');
-                    const command = input.value.trim();
-                    
-                    if (!command) return;
-                    
-                    // Add command to output
-                    output.innerHTML += '<div style="color: #ffffff;">$ ' + command + '</div>';
-                    
-                    // Send command to API
-                    fetch('http://192.168.0.39:8000/set_command', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            command: command,
-                            computer_id: ${computer.id}
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Format response: [id:11, "response: capir/aluno"]
-                        if (data && data.length >= 2) {
-                            const response = data[1].replace('response: ', '');
-                            output.innerHTML += '<div style="color: #00ff88;">' + response + '</div><br>';
-                        } else {
-                            output.innerHTML += '<div style="color: #ff4444;">Erro na resposta do servidor</div><br>';
-                        }
-                    })
-                    .catch(error => {
-                        output.innerHTML += '<div style="color: #ff4444;">Erro: ' + error.message + '</div><br>';
-                    });
-                    
-                    input.value = '';
-                    output.scrollTop = output.scrollHeight;
-                }
+                function executeCommand(cmd) {
+    const input = document.getElementById('command-input');
+    const output = document.getElementById('terminal-output');
+    const command = cmd || input.value.trim();
+
+    const ws = new WebSocket("ws://localhost:8000"); // ou render URL
+
+ws.onmessage = (event) => {
+    try {
+        const data = JSON.parse(event.data);
+        if (data.type === "screen" && data.image) {
+            document.getElementById("stream-image").src = "data:image/jpeg;base64," + data.image;
+        }
+    } catch (err) {
+        console.error("Erro ao processar imagem:", err);
+    }
+}
+    
+    if (!command) return;
+    
+    output.innerHTML += '<div style="color: #ffffff;">$ ' + command + '</div>';
+    
+    fetch('http://localhost:8000/set_command', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            command: command,
+            computer_id: ${computer.id}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data && data.result) {
+            output.innerHTML += '<pre style="color: #00ff88; font-family: monospace;">' + data.result + '</pre><br>';
+        } else {
+            output.innerHTML += '<div style="color: #ff4444;">Erro na resposta do servidor</div><br>';
+        }
+    })
+    .catch(error => {
+        output.innerHTML += '<div style="color: #ff4444;">Erro: ' + error.message + '</div><br>';
+    });
+    
+    input.value = '';
+    output.scrollTop = output.scrollHeight;
+}
+
                 
                 function handleCommand(event) {
                     if (event.key === 'Enter') {

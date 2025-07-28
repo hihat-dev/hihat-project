@@ -12,7 +12,7 @@ function isAutenticado(req, res, next) {
 }
 
 router.get("/home", isAutenticado, (req, res) => {
-    res.sendFile((path.join(__dirname, "../static/html/painel.html")));
+    res.sendFile((path.join(__dirname, "../static/html/index.html")));
 });
 
 module.exports = router;

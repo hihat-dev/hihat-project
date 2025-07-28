@@ -6,6 +6,15 @@ let currentCommand = "";
 let commandId = "";
 let lastClient = null;
 
+function notifyNewComputer(wsServer, info) {
+  const message = JSON.stringify({ type: "new-computer", computer: info })
+  wsServer.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message)
+    }
+  })
+}
+
 function setLastClient(client) {
     lastClient = client;
 }
@@ -56,5 +65,7 @@ router.post("/set_command", async (req, res) => {
 module.exports = {
     router,
     setLastClient,
-    handleResult
+    handleResult,
+    notifyNewComputer
 };
+

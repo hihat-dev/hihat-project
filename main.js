@@ -21,15 +21,49 @@ app.use(session({
 
 const authRoutes = require("./routes/auth");
 const painelRoutes = require("./routes/painel");
-const { router: apiRoutes, setLastClient, handleResult } = require("./routes/api");
+const {
+    router: apiRoutes,
+    setLastClient,
+    handleResult,
+    notifyNewComputer
+} = require("./routes/api");
+
 
 app.use("/", authRoutes);
 app.use("/", painelRoutes);
 app.use("/", apiRoutes);
 
+//functions
+
+wss.on("message", function incoming(message) {
+    try {
+        const data = JSON.parse(message);
+
+        if (data.result) {
+            console.log("[send_result - WS] Resultado recebido:", data.result);
+            handleResult(data.result);
+        } else if (data.type === "screen") {
+            // Envie para a interface Web ou salve em cache
+            ws.latestImage = data.image;
+        }
+    } catch (err) {
+        console.log("Erro ao processar mensagem do cliente:", err);
+    }
+});
+
 wss.on("connection", function connection(ws) {
     console.log("Cliente conectado via WebSocket");
     setLastClient(ws);
+
+    const computerId = Date.now();
+    const computerInfo = {
+        id: computerId,
+        ip: "IP_desconhecido",
+        lab: "outros",
+        status: "online"
+    };
+
+    notifyNewComputer(wss, computerInfo);
 
     ws.on("message", function incoming(message) {
         try {
@@ -47,6 +81,8 @@ wss.on("connection", function connection(ws) {
         console.log("Cliente desconectado");
     });
 });
+
+
 
 server.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor rodando em http://localhost:${PORT} com WebSocket`);
