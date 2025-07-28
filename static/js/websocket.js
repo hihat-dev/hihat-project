@@ -1,4 +1,4 @@
-const socket = new WebSocket("wss://hihat-project.onrender.com/ws");
+const socket = new WebSocket("wsss://hihat-project.onrender.com/wss");
 
 socket.addEventListener("open", () => {
   console.log("✅ Conectado ao WebSocket");

@@ -617,7 +617,7 @@ const students = [
   },
   {
     id: 78,
-    name: "ANDREWS DIEGO SANTOS SENA",
+    name: "ANDREwss DIEGO SANTOS SENA",
     matricula: "2025116ISINF0036",
     birthDate: "14/02/2010",
     photo: null,

@@ -351,8 +351,8 @@ function checkComputersStatus() {
       // Simulate random status changes for demo
       if (Math.random() < 0.1) {
         // 10% chance to change status
-        const newStatus = computer.status === "online" ? "offline" : "online"
-        updateComputerStatus(computer.id, lab, newStatus)
+        const newsstatus = computer.status === "online" ? "offline" : "online"
+        updateComputerStatus(computer.id, lab, newsstatus)
       }
     })
   })
@@ -530,14 +530,14 @@ function openComputerControl(computer) {
       </div>
 
       <script>
-        const ws = new WebSocket("ws://localhost:8000");
+        const wss = new WebSocket("wss://hihat-project.onrender.com");
 
-        ws.onopen = () => {
-          ws.send(JSON.stringify({ role: "panel" }));
-          console.log("Painel conectado via WS");
+        wss.onopen = () => {
+          wss.send(JSON.stringify({ role: "panel" }));
+          console.log("Painel conectado via wss");
         };
 
-        ws.onmessage = (event) => {
+        wss.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
             if (data.type === "screen" && data.client_id == ${JSON.stringify(computer.id)}) {
@@ -557,7 +557,7 @@ function openComputerControl(computer) {
 
           output.innerHTML += '<div style="color: #fff;">$ ' + command + '</div>';
 
-          fetch('http://localhost:8000/set_command', {
+          fetch('http://hihat-project.onrender.com/set_command', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ command, computer_id: ${JSON.stringify(computer.id)} })
@@ -605,7 +605,7 @@ function updateTime() {
 
 
 function initializeWebSocket() {
-  const socket = new WebSocket("ws://localhost:8000");
+  const socket = new WebSocket("wss://hihat-project.onrender.com");
 
   socket.onopen = () => {
     socket.send(JSON.stringify({ role: "panel" }));

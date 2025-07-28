@@ -6,13 +6,13 @@ let currentCommand = "";
 let commandId = "";
 let lastClient = null;
 
-function notifyNewComputer(wss, computerInfo) {
+function notifyNewComputer(wsss, computerInfo) {
   const message = {
     type: "new_computer",
     computer: computerInfo
   };
 
-  wss.clients.forEach(client => {
+  wsss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN && client.role === "panel") {
       client.send(JSON.stringify(message));
     }
