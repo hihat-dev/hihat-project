@@ -18,7 +18,7 @@ function executeCommand() {
     output.appendChild(commandDiv);
 
     // Simulate API call
-    fetch('https://hihat-project.onrender.com/set_command', {
+    fetch('https://hihat.onrender.com/set_command', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
