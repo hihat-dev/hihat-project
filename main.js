@@ -36,7 +36,9 @@ wsss.on("connection", (wss, req) => {
   wss.on("message", (msg) => {
     try {
       const data = JSON.parse(msg);
-      // Cliente Python se identifica enviando {type:"id", id:"cliente_id"}
+      if (data.key !== "minha_chave_super_segura") {
+      console.log("[!] Cliente não autorizado. Conexão encerrada.");
+    }
       if (data.type === "id" && data.id) {
         wss.role = "client";
         wss.client_id = data.id;
