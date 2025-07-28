@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>home</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-shield-alt"></i>Blackhat</h1>
+                <div class="header-info">
+                    <span id="current-time"></span>
+                    <div class="status-indicator online"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="dados">
+                <i class="fas fa-users"></i> Dados
+            </button>
+            <button class="tab-btn" data-tab="vulnerabilidades">
+                <i class="fas fa-bug"></i> Vulnerabilidades
+            </button>
+            <button class="tab-btn" data-tab="labs">
+                <i class="fas fa-desktop"></i> Labs
+            </button>
+        </nav>
+
+        <!-- Tab Contents -->
+        <main class="main-content">
+            <!-- Dados Tab -->
+            <div id="dados" class="tab-content active">
+                <div class="section-header">
+                    <h2>Dados dos Alunos</h2>
+                    <div class="search-container">
+                        <input type="text" id="student-search" placeholder="Buscar por nome, matrícula ou data...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+                <div class="students-list" id="students-list">
+                    <!-- Students will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Vulnerabilidades Tab -->
+            <div id="vulnerabilidades" class="tab-content">
+                <div class="section-header">
+                    <h2>Vulnerabilidades</h2>
+                    <button class="btn-primary" id="add-vuln-btn">
+                        <i class="fas fa-plus"></i> Nova Vulnerabilidade
+                    </button>
+                </div>
+                <div class="vulnerabilities-list" id="vulnerabilities-list">
+                    <!-- Vulnerabilities will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Labs Tab -->
+            <div id="labs" class="tab-content">
+                <div class="section-header">
+                    <h2>Laboratórios</h2>
+                    <div class="lab-tabs">
+                        <button class="lab-tab-btn active" data-lab="lab1">LAB 1</button>
+                        <button class="lab-tab-btn" data-lab="lab2">LAB 2</button>
+                        <button class="lab-tab-btn" data-lab="outros">OUTROS</button>
+                    </div>
+                </div>
+                
+                <div class="lab-content">
+                    <div id="lab1" class="lab-grid active">
+                        <div class="computers-grid" id="computers-lab1">
+                            <!-- Computers will be populated by JS -->
+                        </div>
+                    </div>
+                    <div id="lab2" class="lab-grid">
+                        <div class="computers-grid" id="computers-lab2">
+                            <!-- Computers will be populated by JS -->
+                        </div>
+                    </div>
+                    <div id="outros" class="lab-grid">
+                        <div class="computers-grid" id="computers-outros">
+                            <!-- Computers will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="vuln-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Nova Vulnerabilidade</h3>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <form id="vuln-form">
+                <div class="form-group">
+                    <label for="vuln-title">Título</label>
+                    <input type="text" id="vuln-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="vuln-severity">Severidade</label>
+                    <select id="vuln-severity" required>
+                        <option value="low">Baixa</option>
+                        <option value="medium">Média</option>
+                        <option value="high">Alta</option>
+                        <option value="critical">Crítica</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="vuln-description">Descrição</label>
+                    <textarea id="vuln-description" rows="4" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancel-btn">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/students.js"></script>
+    <script src="../js/script.js"></script>
+</body>
+</html>

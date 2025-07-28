@@ -4,53 +4,57 @@ const router = express.Router();
 let waitingResolvers = [];
 let currentCommand = "";
 let commandId = "";
+let lastClient = null;
+
+function setLastClient(client) {
+    lastClient = client;
+}
+
+function handleResult(result) {
+    while (waitingResolvers.length > 0) {
+        const resolve = waitingResolvers.shift();
+        resolve(result);
+    }
+    currentCommand = "";
+    commandId = "";
+}
 
 router.post("/set_command", async (req, res) => {
     const { command } = req.body;
+    console.log("[set_command] Recebido:", command);
 
     if (!command) {
         return res.status(400).json({ error: "Comando não fornecido" });
     }
 
+    if (!lastClient || lastClient.readyState !== 1) {
+        return res.status(400).json({ error: "Nenhum cliente conectado" });
+    }
+
     commandId = Date.now().toString();
     currentCommand = command;
 
-    // Espera o resultado do client
+    lastClient.send(JSON.stringify({ id: commandId, command }));
+
     try {
         const result = await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 reject("timeout");
-            }, 30000); // timeout de 15s
-
+            }, 30000);
             waitingResolvers.push((output) => {
                 clearTimeout(timeout);
                 resolve(output);
             });
         });
 
-        res.json({ id: commandId, result: result });
+        res.json({ id: commandId, result });
     } catch (err) {
         res.status(504).json({ error: "Tempo esgotado aguardando resultado" });
     }
 });
 
-router.get("/get_command", (req, res) => {
-    res.json({ id: commandId, command: currentCommand });
-});
-
-router.post("/send_result", (req, res) => {
-    const { result } = req.body;
-
-    if (!result) return res.status(400).json({ error: "Sem resultado" });
-
-    while (waitingResolvers.length > 0) {
-        const resolve = waitingResolvers.shift();
-        resolve(result); // entrega o resultado para quem está esperando
-    }
-
-    currentCommand = ""; // limpa
-    commandId = "";
-    res.json({ status: "resultado recebido" });
-});
-
-module.exports = router;
+module.exports = {
+    router,
+    setLastClient,
+    handleResult
+};
