@@ -1,7 +1,7 @@
 const express = require("express");
 const session = require("express-session");
 const http = require("http");
-const WebSocket = require("wss");
+const WebSocket = require("ws");
 
 const app = express();
 const server = http.createServer(app);
