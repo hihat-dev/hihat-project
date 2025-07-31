@@ -35,23 +35,23 @@ app.use("/", apiRoutes);
 
 // Mapa para gerenciar clientes registrados
 
-wss.on("connection", (ws, req) => {
+wss.on("connection", (wss, req) => {
   console.log("Nova conexão WebSocket");
 
-  ws.on("message", (msg) => {
+  wss.on("message", (msg) => {
     try {
       const data = JSON.parse(msg);
 
       if (data.type === "id" && data.id) {
-        ws.role = "client";
-        ws.client_id = data.id;
-        knownClients.set(ws.client_id, ws);
-        setLastClient(ws);
-        console.log("Cliente Python registrado:", ws.client_id);
+        wss.role = "client";
+        wss.client_id = data.id;
+        knownClients.set(wss.client_id, wss);
+        setLastClient(wss);
+        console.log("Cliente Python registrado:", wss.client_id);
 
         const computerInfo = {
-          id: ws.client_id,
-          ip: ws.client_id,
+          id: wss.client_id,
+          ip: wss.client_id,
           lab: "outros",
           status: "online"
         };
@@ -61,7 +61,7 @@ wss.on("connection", (ws, req) => {
       }
 
       if (data.role === "panel") {
-        ws.role = "panel";
+        wss.role = "panel";
         console.log("Conexão do painel registrada");
 
         const onlineComputers = [];
@@ -76,25 +76,25 @@ wss.on("connection", (ws, req) => {
           }
         });
 
-        ws.send(JSON.stringify({
+        wss.send(JSON.stringify({
           type: "current_computers",
           computers: onlineComputers
         }));
         return;
       }
 
-      if (ws.role === "client") {
+      if (wss.role === "client") {
         if (data.type === "result" && data.output) {
-          console.log(`[resultado] Cliente ${ws.client_id}:`, data.output);
+          console.log(`[resultado] Cliente ${wss.client_id}:`, data.output);
           handleResult(data.output);
         } else if (data.type === "screen" && data.image) {
-          ws.latestImage = data.image;
+          wss.latestImage = data.image;
           // Agora aqui acessamos o servidor WebSocket correto para iterar clientes
           wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN && client.role === "panel") {
               client.send(JSON.stringify({
                 type: "screen",
-                client_id: ws.client_id,
+                client_id: wss.client_id,
                 image: data.image
               }));
             }
@@ -106,10 +106,10 @@ wss.on("connection", (ws, req) => {
     }
   });
 
-  ws.on("close", () => {
-    if (ws.role === "client" && ws.client_id) {
-      knownClients.delete(ws.client_id);
-      console.log(`Cliente Python desconectado: ${ws.client_id}`);
+  wss.on("close", () => {
+    if (wss.role === "client" && wss.client_id) {
+      knownClients.delete(wss.client_id);
+      console.log(`Cliente Python desconectado: ${wss.client_id}`);
     } else {
       console.log("Conexão fechada");
     }
