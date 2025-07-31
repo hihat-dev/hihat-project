@@ -1,28 +1,33 @@
 const express = require("express");
-const WebSocket = require("ws");  // necessário para readyState etc
+const WebSocket = require("ws");
 const path = require("path");
 const router = express.Router();
 
-let knownClients;  // variável que receberá o mapa do main.js
+let knownClients;
+let wssRef;  // <-- referência ao servidor WebSocket
 
 function setKnownClients(map) {
   knownClients = map;
 }
 
-// outras variáveis globais e funções (waitingResolvers, currentCommand, etc)
+function setWSServer(wssInstance) {
+  wssRef = wssInstance;
+}
 
 let waitingResolvers = [];
 let currentCommand = "";
 let commandId = "";
 let lastClient = null;
 
-function notifyNewComputer(wss, computerInfo) {
+function notifyNewComputer(computerInfo) {
   const message = {
     type: "new_computer",
     computer: computerInfo
   };
 
-  wss.clients.forEach(client => {
+  if (!wssRef) return;
+
+  wssRef.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN && client.role === "panel") {
       client.send(JSON.stringify(message));
     }
@@ -41,8 +46,6 @@ function handleResult(result) {
   currentCommand = "";
   commandId = "";
 }
-
-// rota para downloads (mantida igual)
 
 router.get("/dist/:arquivo", (req, res) => {
   let filePath;
@@ -68,7 +71,6 @@ router.get("/dist/:arquivo", (req, res) => {
   }
 });
 
-// Rota modificada para aceitar clientId e enviar comando para o cliente correto
 router.post("/set_command", async (req, res) => {
   const { command, clientId } = req.body;
   console.log("[set_command] Recebido:", command, "para cliente:", clientId);
@@ -119,5 +121,6 @@ module.exports = {
   setLastClient,
   handleResult,
   notifyNewComputer,
-  setKnownClients
+  setKnownClients,
+  setWSServer
 };
