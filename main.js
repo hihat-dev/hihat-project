@@ -20,14 +20,20 @@ app.use(session({
 
 const authRoutes = require("./routes/auth");
 const painelRoutes = require("./routes/painel");
-const { router: apiRoutes, setLastClient, handleResult, notifyNewComputer } = require("./routes/api");
+// main.js - logo após const knownClients = new Map();
+const { setLastClient, handleResult, notifyNewComputer, router: apiRoutes } = require("./routes/api");
 
+const knownClients = new Map();
+// Injete knownClients no módulo api via propriedade (para ser usado lá)
+const apiModule = require("./routes/api");
+apiModule.setKnownClients(knownClients);
+
+// depois mantenha seu app.use:
 app.use("/", authRoutes);
 app.use("/", painelRoutes);
 app.use("/", apiRoutes);
 
 // Mapa para gerenciar clientes registrados
-const knownClients = new Map();
 
 wsss.on("connection", (wss, req) => {
   console.log("Nova conexão WebSocket");

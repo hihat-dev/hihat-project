@@ -20,14 +20,13 @@ function executeCommand() {
     // Simulate API call
     fetch('https://hihat.onrender.com/set_command', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            client_id: computerId,
-            command: command
+          command: command,
+          clientId: computerId  // enviando o id do cliente alvo
         })
-    })
+      })
+      
     
         .then(response => response.json())
         .then(data => {
