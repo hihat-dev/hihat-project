@@ -5,7 +5,7 @@ const WebSocket = require("ws");
 
 const app = express();
 const server = http.createServer(app);
-const wsss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ server });
 const PORT = 8000;
 
 app.use(express.urlencoded({ extended: true }));
@@ -35,7 +35,7 @@ app.use("/", apiRoutes);
 
 // Mapa para gerenciar clientes registrados
 
-wsss.on("connection", (wss, req) => {
+wss.on("connection", (wss, req) => {
   console.log("Nova conexão WebSocket");
 
   wss.on("message", (msg) => {
@@ -56,7 +56,7 @@ wsss.on("connection", (wss, req) => {
           status: "online"
         };
 
-        notifyNewComputer(wsss, computerInfo);
+        notifyNewComputer(wss, computerInfo);
         return;
       }
 
@@ -89,7 +89,7 @@ wsss.on("connection", (wss, req) => {
           handleResult(data.output);
         } else if (data.type === "screen" && data.image) {
           wss.latestImage = data.image;
-          wsss.clients.forEach(client => {
+          wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN && client.role === "panel") {
               client.send(JSON.stringify({
                 type: "screen",
