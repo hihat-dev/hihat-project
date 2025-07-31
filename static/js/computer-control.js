@@ -24,9 +24,11 @@ function executeCommand() {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+            client_id: computerId,
             command: command
         })
     })
+    
         .then(response => response.json())
         .then(data => {
             // Expected format: [id:11, "response: capir/aluno"]

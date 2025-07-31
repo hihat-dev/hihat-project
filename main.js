@@ -6,7 +6,6 @@ const WebSocket = require("ws");
 const app = express();
 const server = http.createServer(app);
 const wsss = new WebSocket.Server({ server });
-
 const PORT = 8000;
 
 app.use(express.urlencoded({ extended: true }));
@@ -27,7 +26,7 @@ app.use("/", authRoutes);
 app.use("/", painelRoutes);
 app.use("/", apiRoutes);
 
-// Mapa para gerenciar clientes registrados e evitar duplicatas
+// Mapa para gerenciar clientes registrados
 const knownClients = new Map();
 
 wsss.on("connection", (wss, req) => {
@@ -36,6 +35,7 @@ wsss.on("connection", (wss, req) => {
   wss.on("message", (msg) => {
     try {
       const data = JSON.parse(msg);
+
       if (data.type === "id" && data.id) {
         wss.role = "client";
         wss.client_id = data.id;
@@ -47,20 +47,17 @@ wsss.on("connection", (wss, req) => {
           id: wss.client_id,
           ip: wss.client_id,
           lab: "outros",
-          status: "online",
+          status: "online"
         };
 
-        // Notifica os painéis de novo computador conectado
         notifyNewComputer(wsss, computerInfo);
         return;
       }
 
-      // Painel web se identifica com {role:"panel"}
       if (data.role === "panel") {
         wss.role = "panel";
         console.log("Conexão do painel registrada");
 
-        // Envia a lista atual de computadores online para o painel que acabou de conectar
         const onlineComputers = [];
         knownClients.forEach((clientwss, clientId) => {
           if (clientwss.readyState === WebSocket.OPEN) {
@@ -77,11 +74,9 @@ wsss.on("connection", (wss, req) => {
           type: "current_computers",
           computers: onlineComputers
         }));
-
         return;
       }
 
-      // Mensagens enviadas por clientes Python
       if (wss.role === "client") {
         if (data.type === "result" && data.output) {
           console.log(`[resultado] Cliente ${wss.client_id}:`, data.output);
@@ -115,11 +110,10 @@ wsss.on("connection", (wss, req) => {
 });
 
 app.get("/api/connected_clients", (req, res) => {
-  const clients = Array.from(knownClients.keys()); // só os ids
+  const clients = Array.from(knownClients.keys());
   res.json({ clients });
 });
 
-
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Servidor rodando em https://localhost:${PORT}`);
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

