@@ -30,16 +30,18 @@ function executeCommand() {
     
         .then(response => response.json())
         .then(data => {
-            // Expected format: [id:11, "response: capir/aluno"]
             const responseDiv = document.createElement('div');
-            if (data && Array.isArray(data) && data.length >= 2) {
-                const responseText = data[1].replace('response: ', '');
-                responseDiv.innerHTML = `<span style="color: var(--accent-primary);">${responseText}</span>`;
+            if (data && typeof data.result === 'string') {
+                // Exemplo: pode conter o texto vindo do cliente
+                responseDiv.innerHTML = `<span style="color: var(--accent-primary);">${data.result}</span>`;
+            } else if (data && data.error) {
+                responseDiv.innerHTML = `<span style="color: var(--danger);">Erro: ${data.error}</span>`;
             } else {
-                responseDiv.innerHTML = `<span style="color: var(--danger);">Erro na resposta do servidor</span>`;
+                responseDiv.innerHTML = `<span style="color: var(--danger);">Resposta inesperada do servidor</span>`;
             }
             output.appendChild(responseDiv);
         })
+        
         .catch(error => {
             const errorDiv = document.createElement('div');
             errorDiv.innerHTML = `<span style="color: var(--danger);">Erro: ${error.message}</span>`;
