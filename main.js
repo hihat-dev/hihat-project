@@ -56,7 +56,8 @@ wss.on("connection", (wss, req) => {
           status: "online"
         };
 
-        notifyNewComputer(wss, computerInfo); // <-- aqui é o servidor, correto
+        notifyNewComputer(wss.server, computerInfo);
+ // <-- aqui é o servidor, correto
         return;
       }
 
