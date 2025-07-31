@@ -1,31 +1,40 @@
-let computerId = new URLSearchParams(window.location.search).get("id");
+let computerId = null;
 let computerLab = new URLSearchParams(window.location.search).get("lab") || "lab1";
 
-// Buscar clientes conectados e definir ID válido automaticamente
 fetch("/api/connected_clients")
   .then(res => res.json())
   .then(data => {
     const clients = data.clients || [];
 
-    // Se não tiver ?id= na URL ou ID inválido, pega o primeiro cliente
-    if (!computerId || !clients.includes(computerId)) {
+    const urlParamId = new URLSearchParams(window.location.search).get("id");
+    if (!urlParamId || !clients.includes(urlParamId)) {
       if (clients.length === 0) {
         alert("Nenhum cliente conectado.");
         window.location.href = "/painel";
         return;
       }
       computerId = clients[0];
+    } else {
+      computerId = urlParamId;
     }
 
     document.getElementById("computer-title").textContent =
       `Computador ${computerId} - ${computerLab.toUpperCase()}`;
   });
 
+
 function executeCommand() {
-  const input = document.getElementById("command-input");
-  const output = document.getElementById("terminal-output");
-  const command = input.value.trim();
-  if (!command) return;
+    function executeCommand() {
+        if (!computerId) {
+          alert("Nenhum computador selecionado.");
+          return;
+        }
+      
+        const input = document.getElementById("command-input");
+        const output = document.getElementById("terminal-output");
+        const command = input.value.trim();
+        if (!command) return;
+      
 
   const commandDiv = document.createElement("div");
   commandDiv.innerHTML = `<span style="color: #ffffff;">$ ${command}</span>`;
