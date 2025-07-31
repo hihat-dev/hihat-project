@@ -1,12 +1,13 @@
 let computerId = null;
 let computerLab = new URLSearchParams(window.location.search).get("lab") || "lab1";
 
+// Esperar o carregamento antes de ativar os comandos
 fetch("/api/connected_clients")
   .then(res => res.json())
   .then(data => {
     const clients = data.clients || [];
-
     const urlParamId = new URLSearchParams(window.location.search).get("id");
+
     if (!urlParamId || !clients.includes(urlParamId)) {
       if (clients.length === 0) {
         alert("Nenhum cliente conectado.");
@@ -20,21 +21,22 @@ fetch("/api/connected_clients")
 
     document.getElementById("computer-title").textContent =
       `Computador ${computerId} - ${computerLab.toUpperCase()}`;
+
+    // ✅ Agora que o ID está carregado, ativar eventos
+    document.getElementById("command-input").addEventListener("keydown", handleCommand);
+    document.getElementById("command-input").focus();
   });
 
-
 function executeCommand() {
-    function executeCommand() {
-        if (!computerId) {
-          alert("Nenhum computador selecionado.");
-          return;
-        }
-      
-        const input = document.getElementById("command-input");
-        const output = document.getElementById("terminal-output");
-        const command = input.value.trim();
-        if (!command) return;
-      
+  if (!computerId) {
+    alert("Nenhum computador selecionado.");
+    return;
+  }
+
+  const input = document.getElementById("command-input");
+  const output = document.getElementById("terminal-output");
+  const command = input.value.trim();
+  if (!command) return;
 
   const commandDiv = document.createElement("div");
   commandDiv.innerHTML = `<span style="color: #ffffff;">$ ${command}</span>`;
@@ -88,5 +90,3 @@ function shutdownComputer() {
     executeCommand();
   }
 }
-
-document.getElementById("command-input").focus();
