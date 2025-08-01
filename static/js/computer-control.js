@@ -41,11 +41,6 @@ function executeCommand() {
   const commandDiv = document.createElement("div");
   commandDiv.innerHTML = `<span style="color: #ffffff;">$ ${command}</span>`;
   output.appendChild(commandDiv);
-
-  if (!clientId) {
-    console.error("ID do cliente não fornecido ou inválido");
-    return res.status(400).json({ error: "ID do cliente não fornecido" });
-  }
   console.log({ command, clientId: computerId });
 
   fetch("/set_command", {

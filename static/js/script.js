@@ -560,7 +560,8 @@ function openComputerControl(computer) {
           fetch('https://hihat.onrender.com/set_command', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ command, computer_id: ${JSON.stringify(computer.id)} })
+            body: JSON.stringify({ command, clientId: ${JSON.stringify(computer.id)} })
+
           })
           .then(res => res.json())
           .then(data => {
