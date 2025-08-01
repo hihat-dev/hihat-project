@@ -14,7 +14,7 @@ fetch("/api/connected_clients")
         window.location.href = "/painel";
         return;
       }
-      computerId = clients[0];
+      computerId = clients[0]; // Aqui você deve garantir que clients[0] é um ID válido
     } else {
       computerId = urlParamId;
     }
@@ -42,7 +42,10 @@ function executeCommand() {
   commandDiv.innerHTML = `<span style="color: #ffffff;">$ ${command}</span>`;
   output.appendChild(commandDiv);
 
-  // Adicionando log para verificar o clientId
+  if (!clientId) {
+    console.error("ID do cliente não fornecido ou inválido");
+    return res.status(400).json({ error: "ID do cliente não fornecido" });
+  }
   console.log({ command, clientId: computerId });
 
   fetch("/set_command", {
