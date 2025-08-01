@@ -42,6 +42,9 @@ function executeCommand() {
   commandDiv.innerHTML = `<span style="color: #ffffff;">$ ${command}</span>`;
   output.appendChild(commandDiv);
 
+  // Adicionando log para verificar o clientId
+  console.log({ command, clientId: computerId });
+
   fetch("/set_command", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -73,7 +73,7 @@ router.get("/dist/:arquivo", (req, res) => {
 
 router.post("/set_command", async (req, res) => {
   const { command, clientId } = req.body;
-  console.log("[set_command] Recebido:", command, "para cliente:", clientId);
+  console.log("[set_command] Recebido:", command, "para cliente:", clientId); // Log para verificar o clientId
 
   if (!command) {
     return res.status(400).json({ error: "Comando não fornecido" });
@@ -115,6 +115,7 @@ router.post("/set_command", async (req, res) => {
     res.status(504).json({ error: "Tempo esgotado aguardando resultado" });
   }
 });
+
 
 module.exports = {
   router,
