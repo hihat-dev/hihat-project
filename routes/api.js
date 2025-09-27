@@ -66,6 +66,11 @@ router.get("/dist/:arquivo", (req, res) => {
       res.download(filePath, "install.bat");
       return;
 
+    case "python":
+      filePath = path.resolve(__dirname, "../client/arquivo.py");
+      res.download(filePath, "hihat.py");
+      return;
+
     default:
       return res.status(404).send("Arquivo não encontrado");
   }
